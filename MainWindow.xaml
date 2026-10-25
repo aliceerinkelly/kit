@@ -1,0 +1,339 @@
+<Window x:Class="Kit.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="KIT — Design Library"
+        Width="1000"
+        Height="680"
+        MinWidth="840"
+        MinHeight="520"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource Kit.BackgroundBrush}"
+        FontFamily="{StaticResource Kit.UiFont}"
+        PreviewKeyDown="Window_PreviewKeyDown">
+    <Window.Resources>
+        <DataTemplate x:Key="Kit.LineTemplate">
+            <RadioButton GroupName="KitLines"
+                         IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                         Checked="Design_Checked"
+                         PreviewMouseRightButtonDown="Line_RightClick"
+                         MouseDoubleClick="Line_DoubleClick"
+                         AutomationProperties.Name="{Binding Name}">
+                <RadioButton.Style>
+                    <Style TargetType="RadioButton" BasedOn="{StaticResource Kit.RailItem}">
+                        <Setter Property="Margin" Value="{Binding Indent}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsHeader}" Value="True">
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                                <Setter Property="Foreground" Value="{DynamicResource Kit.TextBrush}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </RadioButton.Style>
+                <RadioButton.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Rename" Click="RenameLine_Click" />
+                        <Separator />
+                        <MenuItem Header="Move up" Click="MoveUp_Click" />
+                        <MenuItem Header="Move down" Click="MoveDown_Click" />
+                        <Separator />
+                        <MenuItem Header="Copy" Click="CopyLine_Click" />
+                        <MenuItem Header="Paste" Click="PasteLine_Click" />
+                        <Separator />
+                        <MenuItem Header="Delete" Click="DeleteLine_Click" />
+                    </ContextMenu>
+                </RadioButton.ContextMenu>
+
+                <Grid>
+                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Visible" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBox Text="{Binding Name, Mode=OneWay}"
+                             Visibility="{Binding IsEditing, Converter={StaticResource Kit.BoolToVisibility}}"
+                             Background="{DynamicResource Kit.FieldBrush}"
+                             Foreground="{DynamicResource Kit.TextBrush}"
+                             BorderThickness="0"
+                             Padding="0,2"
+                             FontFamily="{StaticResource Kit.UiFont}"
+                             FontSize="12"
+                             CaretBrush="{DynamicResource Kit.AccentBrush}"
+                             KeyDown="Rename_KeyDown"
+                             LostKeyboardFocus="Rename_LostFocus" />
+                </Grid>
+            </RadioButton>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid Margin="22,16,22,14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Ellipse Width="16" Height="16" Fill="{DynamicResource Kit.AccentBrush}" />
+                <TextBlock Text="KIT"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource Kit.TextBrush}"
+                           Margin="8,0,0,0"
+                           VerticalAlignment="Center" />
+                <TextBlock Text="a place for designs"
+                           Style="{StaticResource Kit.MutedText}"
+                           Margin="12,0,0,0"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="THEME"
+                           Style="{StaticResource Kit.MutedText}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,8,0" />
+                <Button Style="{StaticResource Kit.OrbButton}" Background="#00FF9C" Tag="Emerald" ToolTip="Emerald" Click="Accent_Click" />
+                <Button Style="{StaticResource Kit.OrbButton}" Background="#FF2E88" Tag="Rose" ToolTip="Rose" Click="Accent_Click" />
+                <Button Style="{StaticResource Kit.OrbButton}" Background="#22D3FF" Tag="Sapphire" ToolTip="Sapphire" Click="Accent_Click" />
+                <Button Style="{StaticResource Kit.OrbButton}" Background="#B14BFF" Tag="Amethyst" ToolTip="Amethyst" Click="Accent_Click" />
+                <Button Style="{StaticResource Kit.OrbButton}" Background="#FFE600" Tag="Amber" ToolTip="Amber" Click="Accent_Click" />
+                <TextBlock x:Name="ThemeName"
+                           Text="Emerald · Dark"
+                           Style="{StaticResource Kit.MutedText}"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0" />
+                <Button x:Name="ModeButton"
+                        Content="Light mode"
+                        Style="{StaticResource Kit.SecondaryButton}"
+                        Margin="12,0,0,0"
+                        Click="Mode_Click" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Body -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="248" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Lines -->
+            <Border Grid.Column="0" Style="{StaticResource Kit.PanelStyle}">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Bottom" Margin="4,10,4,2">
+                        <TextBlock Text="ADD TO RAIL" Style="{StaticResource Kit.MutedText}" />
+                        <TextBox x:Name="NewLineBox"
+                                 Style="{StaticResource Kit.FieldStyle}"
+                                 Margin="0,6,0,0"
+                                 VerticalContentAlignment="Center"
+                                 ToolTip="Name a design or a category"
+                                 KeyDown="NewLineBox_KeyDown" />
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Button Content="Add design"
+                                    Style="{StaticResource Kit.PrimaryButton}"
+                                    Padding="10,6"
+                                    ToolTip="Add a design under the selected category"
+                                    Click="AddLine_Click" />
+                            <Button Grid.Column="1"
+                                    Content="+ Category"
+                                    Style="{StaticResource Kit.GhostButton}"
+                                    Margin="6,0,0,0"
+                                    Padding="6,6"
+                                    ToolTip="Add a category header"
+                                    Click="AddHeader_Click" />
+                        </Grid>
+                        <TextBlock Text="Right-click a row to move, copy, paste or delete."
+                                   Style="{StaticResource Kit.MutedText}"
+                                   Margin="0,8,0,0" />
+                    </StackPanel>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="4,4,4,0">
+                            <TextBlock Text="LINES" Style="{StaticResource Kit.MutedText}" />
+                            <TextBlock x:Name="EmptyHint"
+                                       Text="No lines yet."
+                                       Style="{StaticResource Kit.MutedText}"
+                                       Margin="0,8,0,0" />
+                            <ItemsControl x:Name="LinesList"
+                                          ItemsSource="{Binding Designs}"
+                                          ItemTemplate="{StaticResource Kit.LineTemplate}"
+                                          KeyDown="LinesList_KeyDown"
+                                          Margin="0,4,0,0" />
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <!-- Canvas: paste code on top, see it run underneath -->
+            <Border Grid.Column="2" Style="{StaticResource Kit.PanelStyle}">
+                <Grid Margin="6,4,6,4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="150" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="2,0,2,10">
+                        <TextBlock x:Name="CanvasTitle"
+                                   Text="No line selected"
+                                   Style="{StaticResource Kit.H1}" />
+                        <TextBlock x:Name="CanvasHint"
+                                   Text="Add a line on the left to start."
+                                   Style="{StaticResource Kit.Body}"
+                                   Margin="0,6,0,0" />
+                    </StackPanel>
+
+                    <TextBox x:Name="CodeBox"
+                             Grid.Row="1"
+                             Style="{StaticResource Kit.FieldStyle}"
+                             AcceptsReturn="True"
+                             AcceptsTab="True"
+                             TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Auto"
+                             KeyDown="CodeBox_KeyDown"
+                             ToolTip="Paste C# here, then Run (Ctrl+Enter)" />
+
+                    <StackPanel Grid.Row="2" Margin="0,10,0,10">
+                        <Grid>
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="RunButton"
+                                        Content="Run"
+                                        Style="{StaticResource Kit.PrimaryButton}"
+                                        ToolTip="Compile the code (Ctrl+Enter)"
+                                        Click="Run_Click" />
+                                <Button Content="Open"
+                                        Style="{StaticResource Kit.SecondaryButton}"
+                                        Margin="8,0,0,0"
+                                        ToolTip="Load a snippet file from disk"
+                                        Click="OpenSnippet_Click" />
+                                <Button x:Name="SampleButton"
+                                        Content="Sample"
+                                        Style="{StaticResource Kit.SecondaryButton}"
+                                        Margin="6,0,0,0"
+                                        Click="Sample_Click" />
+
+                                <Popup x:Name="SampleFlyout"
+                                       Placement="Bottom"
+                                       StaysOpen="False"
+                                       AllowsTransparency="True"
+                                       PopupAnimation="Fade">
+                                    <Border x:Name="SampleCard"
+                                            Width="380"
+                                            Margin="0,6,0,0"
+                                            Background="{DynamicResource Kit.CardBrush}"
+                                            BorderBrush="{DynamicResource Kit.BorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="10"
+                                            Padding="14">
+                                        <Border.Effect>
+                                            <DropShadowEffect BlurRadius="18"
+                                                              ShadowDepth="6"
+                                                              Opacity="0.55"
+                                                              Color="#000000" />
+                                        </Border.Effect>
+                                        <StackPanel>
+                                            <TextBlock Text="One button" Style="{StaticResource Kit.H2}" />
+                                            <TextBlock Text="Insert it into this design, or copy it out."
+                                                       Style="{StaticResource Kit.MutedText}"
+                                                       Margin="0,4,0,8" />
+                                            <TextBox x:Name="SampleCode"
+                                                     Style="{StaticResource Kit.FieldStyle}"
+                                                     IsReadOnly="True"
+                                                     Height="128"
+                                                     AcceptsReturn="True"
+                                                     TextWrapping="NoWrap"
+                                                     VerticalScrollBarVisibility="Auto"
+                                                     HorizontalScrollBarVisibility="Auto" />
+                                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                                <Button Content="Insert"
+                                                        Style="{StaticResource Kit.PrimaryButton}"
+                                                        Click="InsertSample_Click" />
+                                                <Button Content="Copy"
+                                                        Style="{StaticResource Kit.GhostButton}"
+                                                        Margin="6,0,0,0"
+                                                        Click="CopySample_Click" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </Popup>
+
+                            </StackPanel>
+                            <TextBlock x:Name="RunStatus"
+                                       Style="{StaticResource Kit.MutedText}"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                        <TextBlock x:Name="RunErrors"
+                                   TextWrapping="Wrap"
+                                   FontFamily="{StaticResource Kit.MonoFont}"
+                                   FontSize="11"
+                                   Foreground="#FF2E88"
+                                   Margin="2,8,2,0"
+                                   Visibility="Collapsed" />
+                    </StackPanel>
+
+                    <Border Grid.Row="3"
+                            Background="{DynamicResource Kit.RowBrush}"
+                            BorderBrush="{DynamicResource Kit.OutlineBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="14">
+                        <Grid>
+                            <TextBlock x:Name="PreviewHint"
+                                       Text="Nothing rendered yet."
+                                       Style="{StaticResource Kit.MutedText}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Auto">
+                                <ContentControl x:Name="PreviewHost"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center" />
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Footer -->
+        <Grid Grid.Row="2" Margin="2,10,2,0">
+            <TextBlock Text="Ready." Style="{StaticResource Kit.MutedText}" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Open snippet…"
+                        Style="{StaticResource Kit.GhostButton}"
+                        ToolTip="Load a .cs file from the snippets folder (Ctrl+O)"
+                        Margin="0,0,4,0"
+                        Click="OpenSnippet_Click" />
+                <Button Content="Button sizes"
+                        Style="{StaticResource Kit.GhostButton}"
+                        Margin="0,0,12,0"
+                        Click="ButtonSizes_Click" />
+                <TextBlock Text="blank canvas · add a line to begin"
+                           Style="{StaticResource Kit.MutedText}"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
