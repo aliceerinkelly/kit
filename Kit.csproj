@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyTitle>KIT</AssemblyTitle>
+    <Product>KIT</Product>
+    <Description>A native WPF design library for programmer tools.</Description>
+    <Company>Alice Kelly</Company>
+    <Authors>Alice Kelly</Authors>
+    <Copyright>© 2026 Alice Kelly</Copyright>
+    <Version>0.1.0</Version>
+    <FileVersion>0.1.0.0</FileVersion>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
+  </ItemGroup>
+
+  <!-- Snippets are text for the paste box, not part of the app. The catalog shelves are
+       also embedded, so a fresh copy of KIT opens with the library already in the rail. -->
+  <ItemGroup>
+    <Compile Remove="snippets\**\*.cs" />
+    <None Include="snippets\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="snippets\catalog\*.cs" LogicalName="snippets/catalog/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="snippets\styles\*.cs" LogicalName="snippets/styles/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="snippets\type\*.cs" LogicalName="snippets/type/%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>
