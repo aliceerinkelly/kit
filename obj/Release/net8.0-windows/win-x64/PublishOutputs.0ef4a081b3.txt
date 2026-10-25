@@ -1,2 +1,0 @@
-C:\Users\alice\OneDrive\Desktop\kit\publish\release-test\Kit.pdb
-C:\Users\alice\OneDrive\Desktop\kit\publish\release-test\Kit.exe
